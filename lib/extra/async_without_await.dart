@@ -1,6 +1,7 @@
 // Неявная обертка в Future.value(), идет в микротаски.
 Future<void> foo() async {
-  print('foo');
+  print('inside foo');
+  // return Future.value();
 }
 
 Future<void> main() async {
@@ -10,7 +11,7 @@ Future<void> main() async {
   Future(() => print('event 1'));
   Future(() => print('event 2'));
 
-  await foo();
+  await foo().then((_) => print('after foo'));
 
   print('main end');
 }
