@@ -7,7 +7,7 @@ enum _Mode {
 }
 
 Future<void> main() async {
-  const depth = 1000;
+  const depth = 2000;
   for (final mode in _Mode.values) {
     _generate(mode: mode, depth: depth);
   }
