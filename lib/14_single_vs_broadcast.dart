@@ -6,6 +6,7 @@ void main() {
   print('main start');
   // Подписки в стримах идут через микротаски
   Future(() => print('event'));
+  Future.microtask(() => print('microtask'));
 
   final controller = StreamController<int>();
   final broadcastController = StreamController<int>.broadcast();
@@ -28,7 +29,7 @@ void main() {
   broadcastSubscription.pause();
 
   for (var i = 3; i < 6; ++i) {
-    // Оба кеширует события во время паузы.
+    // Оба кешируют события во время паузы.
     // Чтобы избежать лишнего кеширования, для broadcast лучше отменить подписку
     // и начать заново, если события во время паузы не важны.
 

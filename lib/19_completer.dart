@@ -3,12 +3,11 @@ import 'dart:async';
 class AsyncOperation {
   final _completer = Completer<int>();
 
-  Future<int> doOperation() {
-    _startOperation();
+  Future<int> waitOperation() {
     return _completer.future;
   }
 
-  void _startOperation() {
+  void doOperation() {
     try {
       // ...
       _finishOperation(42);

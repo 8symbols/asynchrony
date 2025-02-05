@@ -5,7 +5,11 @@ void main() {
 
   final stream = Stream.periodic(Duration(seconds: 1), (computationCount) {
     return 'completed $computationCount times';
-  }).asBroadcastStream();
+  }).asBroadcastStream(
+      // onCancel: (subscription) {
+      //   subscription.cancel();
+      // },
+      );
 
   final subscription1 = stream.listen(print);
   final subscription2 = stream.listen(print);
