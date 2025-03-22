@@ -5,7 +5,7 @@ void main() {
 
   final timer = Timer.periodic(Duration(seconds: 2), (timer) {
     print('time has come ${timer.tick} time');
-    // if (timer.tick == 3) {
+    // if (timer.tick >= 3) {
     //   timer.cancel();
     // }
   });
