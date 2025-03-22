@@ -28,7 +28,6 @@ Future<void> immutable() async {
 class Worker<T> {
   late SendPort _sendPort;
   final Completer<void> _isolateReady = Completer.sync();
-  T? data;
 
   Future<void> spawn() async {
     final receivePort = ReceivePort();
@@ -40,18 +39,21 @@ class Worker<T> {
     if (message is SendPort) {
       _sendPort = message;
       _isolateReady.complete();
-    } else if (message is T) {
-      data = message;
     }
-  }
-
-  static void _startRemoteIsolate(SendPort port) {
-    final receivePort = ReceivePort();
-    port.send(receivePort.sendPort);
   }
 
   Future<void> sendData(T data) async {
     await _isolateReady.future;
     _sendPort.send(data);
   }
+}
+
+Object? data;
+
+void _startRemoteIsolate(SendPort port) {
+  final receivePort = ReceivePort();
+  port.send(receivePort.sendPort);
+  receivePort.listen((message) {
+    data = message;
+  });
 }
