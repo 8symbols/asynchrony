@@ -1,61 +1,74 @@
-void main() {
-  unnamed();
-}
-
-// event
-void unnamed() {
-  _testFutureOrder(() => Future(() {}).then((_) => print('unnamed')));
-}
-
-// event
-void delayed() {
-  _testFutureOrder(
-    () => Future.delayed(Duration.zero).then((_) => print('delayed')),
-  );
-}
-
-// microtask
-void value() {
-  _testFutureOrder(() => Future.value(42).then((_) => print('value')));
-}
-
-// зависит от вложенной future
-void valueFuture() {
-  _testFutureOrder(
-    () => Future.value(
-      Future(() => print('future')),
-    ).then((_) => print('value')),
-  );
-}
-
-// microtask
-void sync() {
-  _testFutureOrder(() => Future.sync(() => 42).then((_) => print('sync')));
-}
-
-// зависит от вложенной future
-void syncFuture() {
-  _testFutureOrder(
-    () => Future.sync(
-      () => Future(() => print('future')),
-    ).then((_) => print('sync')),
-  );
-}
-
-// microtask
-void error() {
-  _testFutureOrder(() => Future.error(42).then((_) => print('error')));
-}
-
 // В промышленном коде опираться на предположение о порядке выполнения
 // операция в event loop - плохо, потому что это детали реализации,
 // которые в будущих релизах могут измениться.
-void _testFutureOrder<T>(Future<T> Function() createFuture) {
-  Future.microtask(() => print('microtask before'));
-  Future(() => print('event before'));
+Future<void> main() async {
+  final callbacks = <Future<void> Function()>[
+    unnamed,
+    delayed,
+    value,
+    valueFuture,
+    sync,
+    syncFuture,
+    error,
+  ];
 
-  createFuture();
+  for (final callback in callbacks) {
+    await callback();
+    await Future.delayed(Duration.zero);
+  }
+}
 
-  Future.microtask(() => print('microtask after'));
-  Future(() => print('event after'));
+Future<void> unnamed() => _testFutureOrder(
+      name: 'unnamed',
+      createFuture: () => Future(() {}),
+    );
+
+Future<void> delayed() => _testFutureOrder(
+      name: 'delayed',
+      createFuture: () => Future.delayed(Duration.zero),
+    );
+
+Future<void> value() => _testFutureOrder(
+      name: 'value',
+      createFuture: () => Future.value(42),
+    );
+
+Future<void> valueFuture() => _testFutureOrder(
+      name: 'value with future',
+      createFuture: () => Future.value(Future(() {})),
+    );
+
+Future<void> sync() => _testFutureOrder(
+      name: 'sync',
+      createFuture: () => Future.sync(() => 42),
+    );
+
+Future<void> syncFuture() => _testFutureOrder(
+      name: 'sync with future',
+      createFuture: () => Future.sync(
+        () => Future(() {}),
+      ),
+    );
+
+Future<void> error() => _testFutureOrder(
+      name: 'error',
+      createFuture: () => Future.error(42),
+    );
+
+Future<void> _testFutureOrder<T>({
+  required String name,
+  required Future<T> Function() createFuture,
+}) async {
+  const results = ['синхронно', 'microtask', 'event'];
+  var index = 0;
+
+  Future.microtask(() => ++index);
+  Future(() => ++index);
+
+  try {
+    await createFuture();
+  } catch (_) {}
+
+  final result = results[index];
+  print('$name: $result');
 }
